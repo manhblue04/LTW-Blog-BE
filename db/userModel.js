@@ -6,6 +6,8 @@ const UserSchema = new mongoose.Schema({
   location: { type: String },
   description: { type: String },
   occupation: { type: String },
+  login_name: { type: String }, 
+  password: { type: String } 
 });
 
 const User = mongoose.model("User", UserSchema, "users");
