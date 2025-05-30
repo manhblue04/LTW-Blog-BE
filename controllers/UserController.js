@@ -59,7 +59,7 @@ module.exports.login = async (req, res) => {
   });
 };
 
-// [POST] /user - Đăng ký tài khoản mới
+// [POST] /admin/register - Đăng ký tài khoản mới
 module.exports.register = async (req, res) => {
   const { login_name, password, first_name, last_name, location, description, occupation } = req.body;
   if (!login_name || !password || !first_name || !last_name) {
@@ -124,7 +124,7 @@ module.exports.detail = async (req, res) => {
     const user = await User.findOne({ _id: id }).select("_id first_name last_name location description occupation");
 
     if (!user) {
-      return res.status(400).json("Không lấy được thông tin user");
+      return res.status(400).json("Không lấy được thông tin user aaa");
     }
 
     res.json({
@@ -136,7 +136,18 @@ module.exports.detail = async (req, res) => {
       occupation: user.occupation
     });
   } catch (error) {
-    res.status(500).json("Không lấy được thông tin user");
+    res.status(500).json("Không lấy được thông tin user bbb");
+  }
+};
+
+// [GET] api/user/count
+module.exports.count = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    console.error("Error in count API:", error);
+    res.status(500).json("Không lấy được số lượng user");
   }
 };
 
