@@ -1,5 +1,23 @@
+const multer = require("multer");
+const path = require("path");
 const Photo = require("../db/photoModel");
 const User = require("../db/userModel");
+
+// Multer config: lưu file vào images/ với tên duy nhất
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../images"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
+  },
+});
+const upload = multer({ storage: storage });
+
+// Middleware upload.single("photo")
+module.exports.uploadPhotoMiddleware = upload.single("photo");
 
 // [GET] api/photo/photosOfUser/:id
 module.exports.photosOfUser = async (req, res) => {
@@ -91,6 +109,29 @@ module.exports.addCommentToPhoto = async (req, res) => {
         : null,
     };
     res.json(commentObj);
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+// [POST] /photos/new: upload ảnh mới
+module.exports.addNewPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Không có file ảnh" });
+    }
+    const userId = req.user && req.user._id;
+    if (!userId) {
+      return res.status(401).json({ error: "Chưa đăng nhập" });
+    }
+    const newPhoto = new Photo({
+      file_name: req.file.filename,
+      date_time: new Date(),
+      user_id: userId,
+      comments: [],
+    });
+    await newPhoto.save();
+    res.json({ success: true, photo: newPhoto });
   } catch (error) {
     res.status(500).json({ error: "Lỗi server" });
   }
