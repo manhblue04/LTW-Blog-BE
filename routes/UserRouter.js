@@ -12,6 +12,8 @@ const requireLogin = controller.requireLogin;
 router.get("/count", requireLogin, controller.count);
 router.get("/list", requireLogin, controller.index);
 router.get("/:id", requireLogin, controller.detail);
-
+router.put("/:id", requireLogin, controller.update); 
+// Lấy tên user theo id
+router.get("/:id/name", requireLogin, controller.getName);
 
 module.exports = router;

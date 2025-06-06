@@ -136,3 +136,53 @@ module.exports.addNewPhoto = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
+
+// Sửa bình luận ảnh
+module.exports.editCommentOfPhoto = async (req, res) => {
+  try {
+    const photoId = req.params.photo_id;
+    const commentId = req.params.comment_id;
+    const { comment } = req.body;
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ error: "Nội dung bình luận không được rỗng" });
+    }
+    const userId = req.user && req.user._id;
+    if (!userId) {
+      return res.status(401).json({ error: "Chưa đăng nhập" });
+    }
+    const photo = await Photo.findById(photoId);
+    if (!photo) {
+      return res.status(404).json({ error: "Không tìm thấy ảnh" });
+    }
+    // Tìm comment cần sửa
+
+    console.log("photoId", photoId, "commentId", commentId);
+    const cmt = photo.comments.id(commentId);
+    if (!cmt) {
+      return res.status(404).json({ error: "Không tìm thấy bình luận" });
+    }
+    // Chỉ cho phép chủ comment sửa
+    if (cmt.user_id.toString() !== userId.toString()) {
+      return res.status(403).json({ error: "Bạn không có quyền sửa bình luận này" });
+    }
+    cmt.comment = comment;
+    await photo.save();
+    // Lấy thông tin user để trả về kèm comment
+    const user = await User.findById(userId).select("_id first_name last_name").lean();
+    const commentObj = {
+      _id: cmt._id,
+      comment: cmt.comment,
+      date_time: cmt.date_time,
+      user: user
+        ? {
+            _id: user._id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+          }
+        : null,
+    };
+    res.json(commentObj);
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};

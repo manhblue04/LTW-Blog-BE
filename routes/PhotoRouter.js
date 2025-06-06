@@ -10,6 +10,9 @@ router.get("/photosOfUser/:id", userController.requireLogin, controller.photosOf
 // Thêm API bình luận ảnh
 router.post("/commentsOfPhoto/:photo_id", userController.requireLogin, controller.addCommentToPhoto);
 
+// Sửa bình luận ảnh
+router.put("/commentsOfPhoto/:photo_id/:comment_id", userController.requireLogin, controller.editCommentOfPhoto);
+
 // Thêm API upload ảnh mới
 router.post(
   "/photos/new",

@@ -25,6 +25,8 @@ module.exports.requireLogin = (req, res, next) => {
   }
 };
 
+
+
 // [POST] /admin/login
 module.exports.login = async (req, res) => {
   const { login_name, password } = req.body;
@@ -58,6 +60,7 @@ module.exports.login = async (req, res) => {
     }
   });
 };
+
 
 // [POST] /admin/register - Đăng ký tài khoản mới
 module.exports.register = async (req, res) => {
@@ -148,6 +151,46 @@ module.exports.count = async (req, res) => {
   } catch (error) {
     console.error("Error in count API:", error);
     res.status(500).json("Không lấy được số lượng user");
+  }
+};
+
+module.exports.update = async (req, res) => {
+  try {
+    const id = req.params.id;
+    // Chỉ cho phép user tự sửa thông tin của mình
+    if (!req.user || req.user._id !== id) {
+      return res.status(403).json({ error: "Bạn không có quyền sửa thông tin người khác" });
+    }
+    const { location, occupation, description } = req.body;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "Không tìm thấy user" });
+    }
+    user.location = location;
+    user.occupation = occupation;
+    user.description = description;
+    await user.save();
+    res.json({
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      location: user.location,
+      description: user.description,
+      occupation: user.occupation
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+// [GET] api/user/:id/name - Lấy tên theo id
+module.exports.getName = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("first_name last_name");
+    if (!user) return res.status(404).json({ error: "Không tìm thấy user" });
+    res.json({ first_name: user.first_name, last_name: user.last_name });
+  } catch (e) {
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
